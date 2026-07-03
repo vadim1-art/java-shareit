@@ -79,4 +79,12 @@ public class ItemServiceImpl implements ItemService {
                 .map(ItemMapper::mapToItemDto)
                 .collect(Collectors.toList());
     }
+//    public List<ItemDto> search(String text) {
+//        String lowerText = text.toLowerCase();
+//        return items.values().stream()
+//                .filter(item -> item.getAvailable())
+//                .filter(item -> item.getName().toLowerCase().contains(lowerText) ||
+//                        item.getDescription().toLowerCase().contains(lowerText))
+//                .collect(Collectors.toList());
+//    }
 }
