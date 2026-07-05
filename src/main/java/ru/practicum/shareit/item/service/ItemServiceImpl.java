@@ -10,7 +10,6 @@ import ru.practicum.shareit.item.dto.UpdateItemRequest;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.user.UserRepository;
-import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
