@@ -9,11 +9,11 @@ import ru.practicum.shareit.item.dto.NewItemRequest;
 import ru.practicum.shareit.item.dto.UpdateItemRequest;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,19 +21,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
     private final UserService userService;
 
     @Override
     public ItemDto create(Long userId, NewItemRequest request) {
-        UserDto userDto = userService.getById(userId);
+        User owner = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        User owner = new User();
-        owner.setId(userDto.getId());
-        owner.setName(userDto.getName());
-        owner.setEmail(userDto.getEmail());
-
-        Item item = ItemMapper.mapToItem(request);
-        item.setOwner(owner);
+        Item item = ItemMapper.mapToItem(request, owner);
 
         return ItemMapper.mapToItemDto(itemRepository.save(item));
     }
@@ -72,9 +68,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> search(String text) {
-        if (text == null || text.isBlank()) {
-            return Collections.emptyList();
-        }
         return itemRepository.search(text).stream()
                 .map(ItemMapper::mapToItemDto)
                 .collect(Collectors.toList());

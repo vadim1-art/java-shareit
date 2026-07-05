@@ -9,6 +9,7 @@ import ru.practicum.shareit.item.dto.NewItemRequest;
 import ru.practicum.shareit.item.dto.UpdateItemRequest;
 import ru.practicum.shareit.item.service.ItemService;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -44,6 +45,9 @@ public class ItemController {
 
     @GetMapping("/search")
     public List<ItemDto> search(@RequestParam String text) {
+        if (text == null || text.isBlank()) {
+            return List.of();
+        }
         return itemService.search(text);
     }
 }
