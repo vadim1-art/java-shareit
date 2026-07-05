@@ -44,9 +44,15 @@ public class ItemServiceImpl implements ItemService {
             throw new NotFoundException("Пользователь не является владельцем вещи");
         }
 
-        if (request.hasName()) item.setName(request.getName());
-        if (request.hasDescription()) item.setDescription(request.getDescription());
-        if (request.hasAvailable()) item.setAvailable(request.getAvailable());
+        if (request.hasName()) {
+            item.setName(request.getName());
+        }
+        if (request.hasDescription()) {
+            item.setDescription(request.getDescription());
+        }
+        if (request.hasAvailable()) {
+            item.setAvailable(request.getAvailable());
+        }
 
         return ItemMapper.mapToItemDto(itemRepository.save(item));
     }
