@@ -11,7 +11,6 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,7 +20,6 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
-    private final UserService userService;
 
     @Override
     public ItemDto create(Long userId, NewItemRequest request) {
@@ -35,7 +33,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto update(Long userId, Long itemId, UpdateItemRequest request) {
-        userService.getById(userId);
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
 
@@ -59,7 +59,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getOwnerItems(Long userId) {
-        userService.getById(userId);
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+
         return itemRepository.findByOwnerId(userId).stream()
                 .map(ItemMapper::mapToItemDto)
                 .collect(Collectors.toList());
