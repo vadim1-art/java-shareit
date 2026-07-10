@@ -136,7 +136,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private List<CommentDto> getCommentsByItemId(Long itemId) {
-        return commentRepository.findByItemIdOrderByCreatedDesc(itemId).stream()
+        return commentRepository.findByItemId(itemId).stream()
                 .map(CommentMapper::mapToCommentDto)
                 .collect(Collectors.toList());
     }
