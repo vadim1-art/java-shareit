@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping(path = "/requests")
 public class ItemRequestController {
 
-    private final ItemRequestService requestService;
+    private final ItemRequestService itemRequestService;
     private static final String USER_ID_HEADER = "X-Sharer-User-Id";
 
     @PostMapping
@@ -25,25 +25,25 @@ public class ItemRequestController {
     public ItemRequestDto create(@RequestHeader(USER_ID_HEADER) Long userId,
                                  @Valid @RequestBody NewItemRequestDto dto) {
         log.info("Создание запроса вещи пользователем с id = {}", userId);
-        return requestService.create(userId, dto);
+        return itemRequestService.create(userId, dto);
     }
 
     @GetMapping
     public List<ItemRequestDto> getUserRequests(@RequestHeader(USER_ID_HEADER) Long userId) {
         log.info("Получение списка собственных запросов пользователя с id = {}", userId);
-        return requestService.getUserRequests(userId);
+        return itemRequestService.getUserRequests(userId);
     }
 
     @GetMapping("/all")
     public List<ItemRequestDto> getAllRequests(@RequestHeader(USER_ID_HEADER) Long userId) {
         log.info("Получение списка запросов других пользователей для юзера с id = {}", userId);
-        return requestService.getAllRequests(userId);
+        return itemRequestService.getAllRequests(userId);
     }
 
     @GetMapping("/{requestId}")
     public ItemRequestDto getById(@RequestHeader(USER_ID_HEADER) Long userId,
                                   @PathVariable Long requestId) {
         log.info("Получение запроса с id = {} пользователем с id = {}", requestId, userId);
-        return requestService.getById(userId, requestId);
+        return itemRequestService.getById(userId, requestId);
     }
 }
