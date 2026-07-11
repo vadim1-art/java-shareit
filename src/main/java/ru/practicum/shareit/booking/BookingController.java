@@ -12,8 +12,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/bookings")
-@RequiredArgsConstructor
 public class BookingController {
+
+    public BookingController(BookingService bookingService) {
+        this.bookingService = bookingService;
+    }
 
     private final BookingService bookingService;
     private static final String USER_ID_HEADER = "X-Sharer-User-Id";
