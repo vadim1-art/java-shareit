@@ -61,7 +61,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new NotFoundException("Бронирование с id = " + bookingId + " не найдено"));
 
         if (!booking.getItem().getOwner().getId().equals(userId)) {
-            throw new NotFoundException("Только владелец вещи может подтвердить бронирование");
+            throw new ValidationException("Только владелец вещи может подтвердить бронирование");
         }
 
         if (booking.getStatus() != BookingStatus.WAITING) {
@@ -132,14 +132,8 @@ public class BookingServiceImpl implements BookingService {
                 return toDtoList(bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED));
             case ALL:
             default:
-                return toDtoList(bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now).isEmpty() &&
-                        bookingRepository.findAllByBookerIdOrderByStartDesc(userId).isEmpty() ?
-                        List.of() : bookingRepository.findAllByBookerIdOrderByStartDesc(userId));
+                return toDtoList(bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId));
         }
-    }
-
-    private List<BookingDto> getOwnerAll(Long userId, LocalDateTime now, String stateStr) {
-        return toDtoList(bookingRepository.findAllByBookerIdOrderByStartDesc(userId)); // Временная заглушка, если метод не объявлен полностью
     }
 
     private void checkUserExists(Long userId) {
