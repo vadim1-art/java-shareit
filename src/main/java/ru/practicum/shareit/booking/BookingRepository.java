@@ -1,7 +1,10 @@
 package ru.practicum.shareit.booking;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.booking.enumClasses.BookingStatus;
 import ru.practicum.shareit.booking.model.Booking;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -63,4 +66,18 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     // Проверка для комментариев: брал ли пользователь эту вещь в аренду? (Статус APPROVED, дата конца уже прошла)
     boolean existsByBookerIdAndItemIdAndEndBeforeAndStatus(
             Long bookerId, Long itemId, LocalDateTime end, BookingStatus status);
+
+    List<Booking> findByItemIdAndStatus(Long itemId, BookingStatus status);
+
+    List<Booking> findByItemIdInAndStatus(List<Long> itemIds, BookingStatus status);
+
+    // Проверка пересечения бронирований
+    @Query("select count(b) > 0 from Booking b " +
+            "where b.item.id = :itemId " +
+            "and b.status != 'REJECTED' " +
+            "and b.start < :end " +
+            "and b.end > :start")
+    boolean hasOverlappingBooking(@Param("itemId") Long itemId,
+                                  @Param("start") LocalDateTime start,
+                                  @Param("end") LocalDateTime end);
 }

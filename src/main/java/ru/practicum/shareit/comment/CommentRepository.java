@@ -11,4 +11,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     // Найти все комментарии к конкретной вещи, отсортированные по дате создания
     List<Comment> findAllByItemIdOrderByCreatedDesc(Long itemId);
+
+    List<Comment> findByItemIdIn(List<Long> itemIds);
 }

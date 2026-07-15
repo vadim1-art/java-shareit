@@ -3,6 +3,7 @@ package ru.practicum.shareit.comment;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import ru.practicum.shareit.comment.dto.CommentDto;
+import ru.practicum.shareit.comment.dto.NewCommentRequest;
 import ru.practicum.shareit.comment.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
@@ -12,9 +13,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CommentMapper {
 
-    public static Comment mapToComment(CommentDto dto, Item item, User author) {
+    public static Comment mapToComment(NewCommentRequest request, Item item, User author) {
         Comment comment = new Comment();
-        comment.setText(dto.getText());
+        comment.setText(request.getText());
         comment.setItem(item);
         comment.setAuthor(author);
         comment.setCreated(LocalDateTime.now());

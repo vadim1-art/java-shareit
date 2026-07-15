@@ -5,7 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingMapper;
 import ru.practicum.shareit.booking.BookingRepository;
-import ru.practicum.shareit.booking.BookingStatus;
+import ru.practicum.shareit.booking.enumClasses.BookingStatus;
+import ru.practicum.shareit.booking.enumClasses.BookingState;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.NewBookingRequest;
 import ru.practicum.shareit.booking.model.Booking;
@@ -50,6 +51,10 @@ public class BookingServiceImpl implements BookingService {
             throw new ValidationException("Дата окончания бронирования не может быть раньше или равна дате начала");
         }
 
+        if (bookingRepository.hasOverlappingBooking(item.getId(), request.getStart(), request.getEnd())) {
+            throw new ValidationException("Вещь уже забронирована на этот период");
+        }
+
         Booking booking = BookingMapper.mapToBooking(request, item, booker);
         return BookingMapper.mapToBookingDto(bookingRepository.save(booking));
     }
@@ -62,6 +67,10 @@ public class BookingServiceImpl implements BookingService {
 
         if (!booking.getItem().getOwner().getId().equals(userId)) {
             throw new ValidationException("Только владелец вещи может подтвердить бронирование");
+        }
+
+        if (booking.getStart().isBefore(LocalDateTime.now())) {
+            throw new ValidationException("Нельзя изменить статус бронирования, которое уже началось или прошло");
         }
 
         if (booking.getStatus() != BookingStatus.WAITING) {
@@ -97,21 +106,14 @@ public class BookingServiceImpl implements BookingService {
         checkUserExists(userId);
         LocalDateTime now = LocalDateTime.now();
 
-        switch (parseState(stateStr)) {
-            case CURRENT:
-                return toDtoList(bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now));
-            case PAST:
-                return toDtoList(bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now));
-            case FUTURE:
-                return toDtoList(bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, now));
-            case WAITING:
-                return toDtoList(bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING));
-            case REJECTED:
-                return toDtoList(bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED));
-            case ALL:
-            default:
-                return toDtoList(bookingRepository.findAllByBookerIdOrderByStartDesc(userId));
-        }
+        return switch (BookingState.fromString(stateStr)) {
+            case CURRENT -> toDtoList(bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now));
+            case PAST -> toDtoList(bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now));
+            case FUTURE -> toDtoList(bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, now));
+            case WAITING -> toDtoList(bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING));
+            case REJECTED -> toDtoList(bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED));
+            case ALL -> toDtoList(bookingRepository.findAllByBookerIdOrderByStartDesc(userId));
+        };
     }
 
     @Override
@@ -119,21 +121,14 @@ public class BookingServiceImpl implements BookingService {
         checkUserExists(userId);
         LocalDateTime now = LocalDateTime.now();
 
-        switch (parseState(stateStr)) {
-            case CURRENT:
-                return toDtoList(bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now));
-            case PAST:
-                return toDtoList(bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, now));
-            case FUTURE:
-                return toDtoList(bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, now));
-            case WAITING:
-                return toDtoList(bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING));
-            case REJECTED:
-                return toDtoList(bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED));
-            case ALL:
-            default:
-                return toDtoList(bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId));
-        }
+        return switch (BookingState.fromString(stateStr)) {
+            case CURRENT -> toDtoList(bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now));
+            case PAST -> toDtoList(bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, now));
+            case FUTURE -> toDtoList(bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, now));
+            case WAITING -> toDtoList(bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING));
+            case REJECTED -> toDtoList(bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED));
+            case ALL -> toDtoList(bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId));
+        };
     }
 
     private void checkUserExists(Long userId) {
@@ -142,21 +137,9 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private State parseState(String stateStr) {
-        try {
-            return State.valueOf(stateStr.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new ValidationException("Unknown state: " + stateStr);
-        }
-    }
-
     private List<BookingDto> toDtoList(List<Booking> bookings) {
         return bookings.stream()
                 .map(BookingMapper::mapToBookingDto)
                 .collect(Collectors.toList());
-    }
-
-    private enum State {
-        ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED
     }
 }
