@@ -1,12 +1,49 @@
 package ru.practicum.shareit.request;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.dto.NewItemRequestDto;
+import ru.practicum.shareit.request.service.ItemRequestService;
 
-/**
- * TODO Sprint add-item-requests.
- */
+import java.util.List;
+
+@Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(path = "/requests")
 public class ItemRequestController {
+
+    private final ItemRequestService itemRequestService;
+    private static final String USER_ID_HEADER = "X-Sharer-User-Id";
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ItemRequestDto create(@RequestHeader(USER_ID_HEADER) Long userId,
+                                 @Valid @RequestBody NewItemRequestDto dto) {
+        log.info("Создание запроса вещи пользователем с id = {}", userId);
+        return itemRequestService.create(userId, dto);
+    }
+
+    @GetMapping
+    public List<ItemRequestDto> getUserRequests(@RequestHeader(USER_ID_HEADER) Long userId) {
+        log.info("Получение списка собственных запросов пользователя с id = {}", userId);
+        return itemRequestService.getUserRequests(userId);
+    }
+
+    @GetMapping("/all")
+    public List<ItemRequestDto> getAllRequests(@RequestHeader(USER_ID_HEADER) Long userId) {
+        log.info("Получение списка запросов других пользователей для юзера с id = {}", userId);
+        return itemRequestService.getAllRequests(userId);
+    }
+
+    @GetMapping("/{requestId}")
+    public ItemRequestDto getById(@RequestHeader(USER_ID_HEADER) Long userId,
+                                  @PathVariable Long requestId) {
+        log.info("Получение запроса с id = {} пользователем с id = {}", requestId, userId);
+        return itemRequestService.getById(userId, requestId);
+    }
 }

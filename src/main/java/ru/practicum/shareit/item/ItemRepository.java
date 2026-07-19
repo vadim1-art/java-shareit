@@ -1,40 +1,28 @@
 package ru.practicum.shareit.item;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.model.Item;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Repository
-public class ItemRepository {
-    private final Map<Long, Item> items = new HashMap<>();
-    private long currentId = 1;
+public interface ItemRepository extends JpaRepository<Item, Long> {
 
-    public Item save(Item item) {
-        if (item.getId() == null) {
-            item.setId(currentId++);
-        }
-        items.put(item.getId(), item);
-        return item;
-    }
+    // Получение вещей владельца с сортировкой по ID
+    List<Item> findByOwnerIdOrderById(Long ownerId);
 
-    public Optional<Item> findById(Long id) {
-        return Optional.ofNullable(items.get(id));
-    }
+    // Поиск по названию и описанию (только доступные к аренде вещи)
+    @Query("select i from Item i " +
+            "where (lower(i.name) like lower(concat('%', ?1, '%')) " +
+            "or lower(i.description) like lower(concat('%', ?1, '%'))) " +
+            "and i.available = true")
+    List<Item> search(String text);
 
-    public List<Item> findByOwnerId(Long ownerId) {
-        return items.values().stream()
-                .filter(item -> item.getOwner() != null && item.getOwner().getId().equals(ownerId))
-                .collect(Collectors.toList());
-    }
+    // Поиск вещей, добавленных в ответ на конкретный запрос
+    List<Item> findByRequestId(Long requestId);
 
-    public List<Item> search(String text) {
-        String lowerText = text.toLowerCase();
-        return items.values().stream()
-                .filter(Item::getAvailable)
-                .filter(item -> item.getName().toLowerCase().contains(lowerText) ||
-                        item.getDescription().toLowerCase().contains(lowerText))
-                .collect(Collectors.toList());
-    }
+    // Поиск вещей для списка запросов (оптимизация)
+    List<Item> findByRequestIdIn(List<Long> requestIds);
 }
