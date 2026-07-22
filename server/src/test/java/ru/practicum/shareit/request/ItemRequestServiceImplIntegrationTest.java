@@ -1,4 +1,4 @@
-package ru.practicum.shareit;
+package ru.practicum.shareit.request;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;

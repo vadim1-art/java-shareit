@@ -14,4 +14,6 @@ public class NewItemRequest {
 
     @NotNull(message = "Укажите статус бронирования")
     private Boolean available;
+
+    private Long requestId;
 }
