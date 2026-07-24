@@ -24,12 +24,6 @@ public final class ItemMapper {
         itemDto.setName(item.getName());
         itemDto.setDescription(item.getDescription());
         itemDto.setAvailable(item.getAvailable());
-
-        // Маппим requestId для корректного отображения в JSON ответах
-        if (item.getRequest() != null) {
-            itemDto.setRequestId(item.getRequest().getId());
-        }
-
         return itemDto;
     }
 }
