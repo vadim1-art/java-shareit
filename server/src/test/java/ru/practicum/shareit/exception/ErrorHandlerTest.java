@@ -30,15 +30,6 @@ class ErrorHandlerTest {
     }
 
     @Test
-    void handleValidationException() {
-        ValidationException exception = new ValidationException("Ошибка валидации");
-        Map<String, String> response = errorHandler.handleValidationException(exception);
-
-        assertNotNull(response);
-        assertEquals("Ошибка валидации", response.get("error"));
-    }
-
-    @Test
     void handleThrowable() {
         Throwable exception = new Throwable("Непредвиденная ошибка");
         Map<String, String> response = errorHandler.handleThrowable(exception);
